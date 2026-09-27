@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cyber Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101222; --panel:#1c2036; --line:#30365a;
+  --ink:#f0f2fb; --sub:#a7aecb;
+  --cyan:#45e0ff; --magenta:#ff5da2; --amber:#ffcf56; --red:#ff6f6f;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);}
+body{height:100%;margin:0;font-family:'Space Mono',monospace;background:var(--bg);color:var(--ink);display:flex;justify-content:center;overflow-x:hidden;}
+.stage{width:100%;max-width:840px;min-height:100vh;padding:26px 18px 44px;display:flex;flex-direction:column;align-items:center;gap:18px;
+  background:radial-gradient(circle at 15% 0%, #232951 0%, var(--bg) 60%);}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);align-self:stretch;display:flex;justify-content:space-between;font-family:'Baloo 2';font-weight:700;color:var(--cyan);font-size:15px;}
+.hidden{display:none !important;}
+.screen{width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;}
+h1{font-family:'Baloo 2';font-weight:800;font-size:clamp(26px,6.5vw,42px);color:var(--cyan);margin:0;}
+h2{font-family:'Baloo 2';font-weight:700;font-size:clamp(18px,4.8vw,25px);color:var(--ink);margin:0;}
+p{font-size:16px;color:var(--sub);max-width:540px;margin:0;line-height:1.5;}
+.icon{font-size:60px;}
+.btn{font-family:'Baloo 2';font-weight:700;font-size:19px;background:var(--cyan);color:#0a0e1a;border:none;border-radius:14px;padding:15px 34px;cursor:pointer;box-shadow:0 6px 0 #1a8fab;}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1a8fab;}
+.btn.magenta{background:var(--magenta);box-shadow:0 6px 0 #a5305f;}
+.btn.magenta:active{box-shadow:0 2px 0 #a5305f;}
+input[type="text"]{font-family:'Space Mono';font-weight:700;font-size:20px;padding:13px 18px;border-radius:12px;border:3px solid var(--cyan);width:min(300px,80vw);text-align:center;background:var(--panel);color:var(--ink);}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;width:100%;box-shadow:0 8px 0 rgba(0,0,0,.3);}
+.tag{font-family:'Baloo 2';font-weight:700;color:var(--magenta);font-size:14px;}
+.qtext{font-family:'Baloo 2';font-weight:700;font-size:clamp(16px,4vw,21px);margin:8px 0 16px;color:var(--ink);}
+.script{display:flex;flex-direction:column;gap:0;align-items:center;margin:10px 0;}
+.script.hidden{display:none;}
+.block{width:min(360px,92%);font-size:14px;font-weight:700;padding:10px 14px;border-radius:8px;text-align:left;border:2px solid rgba(0,0,0,.15);}
+.block.event{background:var(--amber);color:#3a2600;border-radius:14px 14px 8px 8px;}
+.block.motion{background:#5b7cff;color:#fff;}
+.block.control{background:#ff9f43;color:#3a2600;}
+.block.nested{width:min(320px,84%);margin-left:20px;}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px;}
+.choice{background:#151a2e;border:2px solid var(--line);border-radius:12px;padding:14px 10px;font-family:'Space Mono';font-weight:700;font-size:14.5px;cursor:pointer;color:var(--ink);}
+.choice:hover{border-color:var(--cyan);}
+.choice.correct{background:#0f3335;border-color:var(--cyan);}
+.choice.wrong{background:#331414;border-color:var(--red);}
+.feedback{font-family:'Baloo 2';font-weight:700;font-size:17px;min-height:26px;}
+.feedback.good{color:var(--cyan);}
+.feedback.bad{color:var(--red);}
+.progress{display:flex;gap:6px;margin-top:4px;}
+.dot{width:9px;height:9px;border-radius:50%;background:#333a5e;}
+.dot.on{background:var(--cyan);}
+.cert{background:var(--panel);border-radius:20px;padding:26px 22px;border:3px solid var(--cyan);width:100%;}
+.stars{font-size:30px;letter-spacing:6px;}
+.badges{font-size:34px;margin-top:6px;}
+.checklist{display:flex;flex-direction:column;gap:10px;}
+.check-item{display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:10px;border-radius:12px;border:2px solid var(--line);}
+.check-item:hover{border-color:var(--cyan);}
+.check-item.done{border-color:var(--cyan);background:#0f3335;}
+.check-num{font-family:'Baloo 2';font-weight:800;color:var(--amber);font-size:16px;min-width:22px;}
+.check-text{font-size:14.5px;color:var(--ink);line-height:1.4;}
+.check-mark{margin-left:auto;font-size:18px;color:var(--cyan);opacity:0;}
+.check-item.done .check-mark{opacity:1;}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="bar"><span id="agentname">🕶️ Agent</span><span id="starcount">⭐ 0</span></div>
+
+  <section class="screen" id="s-title">
+    <div class="icon">🛡️🕶️</div>
+    <h1>CYBER AGENTS</h1>
+    <h2>Year 4 Computing Mission</h2>
+    <p>Two badges are up for grabs today: the Privacy Badge and the Loop Badge. Ready to prove you're a Cyber Agent?</p>
+    <button class="btn" id="btn-start">START</button>
+  </section>
+
+  <section class="screen hidden" id="s-name">
+    <div class="icon">🪪</div>
+    <h2>What is your agent name?</h2>
+    <p>Agent Name:</p>
+    <input type="text" id="nameInput" placeholder="Type your name" maxlength="18">
+    <button class="btn magenta" id="btn-name-go">START MISSION</button>
+  </section>
+
+  <!-- ROUND 1: PRIVACY PATROL -->
+  <section class="screen hidden" id="s-r1">
+    <h2>Round 1 · Privacy Patrol 🔒</h2>
+    <div class="panel">
+      <div class="tag" id="r1tag">Question 1 of 4</div>
+      <div class="qtext" id="r1q"></div>
+      <div class="script hidden" id="r1script"></div>
+      <div class="choices" id="r1choices"></div>
+      <div class="feedback" id="r1fb"></div>
+      <button class="btn hidden" id="btn-next-r1">NEXT ▶</button>
+    </div>
+    <div class="progress" id="r1dots"></div>
+  </section>
+
+  <!-- ROUND 2: PASSWORD POWER -->
+  <section class="screen hidden" id="s-r2">
+    <h2>Round 2 · Password Power 🔑</h2>
+    <div class="panel">
+      <div class="tag" id="r2tag">Question 1 of 3</div>
+      <div class="qtext" id="r2q"></div>
+      <div class="script hidden" id="r2script"></div>
+      <div class="choices" id="r2choices"></div>
+      <div class="feedback" id="r2fb"></div>
+      <button class="btn hidden" id="btn-next-r2">NEXT ▶</button>
+    </div>
+    <div class="progress" id="r2dots"></div>
+  </section>
+
+  <!-- ROUND 3: LOOP DETECTIVE -->
+  <section class="screen hidden" id="s-r3">
+    <h2>Round 3 · Loop Detective 🔁</h2>
+    <div class="panel">
+      <div class="tag" id="r3tag">Question 1 of 2</div>
+      <div class="qtext" id="r3q"></div>
+      <div class="script hidden" id="r3script"></div>
+      <div class="choices" id="r3choices"></div>
+      <div class="feedback" id="r3fb"></div>
+      <button class="btn hidden" id="btn-next-r3">NEXT ▶</button>
+    </div>
+    <div class="progress" id="r3dots"></div>
+  </section>
+
+  <!-- ROUND 4: REPEAT BLOCK CHALLENGE -->
+  <section class="screen hidden" id="s-r4">
+    <h2>Round 4 · Repeat Block Challenge ⭐</h2>
+    <div class="panel">
+      <div class="tag" id="r4tag">Question 1 of 3</div>
+      <div class="qtext" id="r4q"></div>
+      <div class="script hidden" id="r4script"></div>
+      <div class="choices" id="r4choices"></div>
+      <div class="feedback" id="r4fb"></div>
+      <button class="btn hidden" id="btn-next-r4">NEXT ▶</button>
+    </div>
+    <div class="progress" id="r4dots"></div>
+  </section>
+
+  <!-- PRACTICAL PROJECT -->
+  <section class="screen hidden" id="s-practical">
+    <div class="icon">🧩🖥️</div>
+    <h2>Practical Mission · Build It in PictoBlox!</h2>
+    <p>Time to leave the screen quiz and open PictoBlox for real. Build a repeating shape or pattern using a count-controlled loop.</p>
+    <div class="panel" style="text-align:left;">
+      <div class="checklist" id="checklist"></div>
+    </div>
+    <div class="panel" style="text-align:left;">
+      <div class="tag">Bonus challenge (extension)</div>
+      <div class="qtext" style="margin-bottom:0;">Nest a second "repeat" block inside your first one to build a more complex pattern — then explain why a loop is quicker than repeating the same block by hand.</div>
+    </div>
+    <button class="btn magenta" id="btn-practical-done">FINISHED — SEE MY CERTIFICATE ▶</button>
+  </section>
+
+  <section class="screen hidden" id="s-end">
+    <div class="icon">🏆</div>
+    <div class="cert">
+      <h2>Mission Complete!</h2>
+      <p style="margin-top:6px;">Congratulations, Agent</p>
+      <h1 id="certname" style="font-size:clamp(22px,6vw,32px);">Agent</h1>
+      <p>You explained why privacy matters, built strong passwords, used count-controlled loops (iteration) to predict what a program will do, and built your own repeating pattern in PictoBlox!</p>
+      <div class="badges">🔒 🔁</div>
+      <div class="stars" id="finalstars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <button class="btn" id="btn-restart">PLAY AGAIN</button>
+  </section>
+</div>
+
+<script>
+let stars=0, agentName="Agent";
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));$(id).classList.remove('hidden');window.scrollTo(0,0);}
+function addStar(fb,msg){stars++;$('starcount').textContent='⭐ '+stars;fb.textContent='✅ '+msg;fb.className='feedback good';}
+function missStar(fb,msg){fb.textContent='❌ '+msg;fb.className='feedback bad';}
+function blockEl(cls,text,nested){const d=document.createElement('div');d.className='block '+cls+(nested?' nested':'');d.textContent=text;return d;}
+
+$('btn-start').onclick=()=>show('s-name');
+$('btn-name-go').onclick=()=>{
+  const v=$('nameInput').value.trim();
+  agentName=v.length?v:'Agent';
+  $('agentname').textContent='🕶️ '+agentName;
+  show('s-r1'); renderRound('r1');
+};
+
+/* ---------- QUESTION DATA ---------- */
+const r1Data=[
+  {q:"Your favourite colour. Is it safe to share online?", choices:[
+    {t:'Share it! 🎨',ok:true},{t:'Keep it private 🔒',ok:false}],
+   fb:'Yes — your favourite colour can\'t be used to find or harm you.'},
+  {q:"Your full home address. Is it safe to share online?", choices:[
+    {t:'Share it!',ok:false},{t:'Keep it private 🔒',ok:true}],
+   fb:'Correct — your address could help a stranger find you in real life.'},
+  {q:"Your pet's name. Is it safe to share online?", choices:[
+    {t:'Share it!',ok:false},{t:'Keep it private 🔒',ok:true}],
+   fb:'Good thinking — pet names are often used as password guesses or security answers.'},
+  {q:"Which sentence best explains why privacy matters online?", choices:[
+    {t:'Keeping personal info private stops strangers misusing it to find or trick you.',ok:true},
+    {t:'Privacy matters so websites load faster.',ok:false},
+    {t:'Privacy matters so you can play more games.',ok:false}],
+   fb:'Exactly — keeping personal information private protects you from strangers online.'},
+];
+
+const r2Data=[
+  {q:"Which password is strongest?", choices:[
+    {t:'password123',ok:false},{t:'Tk7!vQ2&mZ',ok:true},{t:'fluffy2010',ok:false}],
+   fb:'Right — 8+ characters, a mix of letters/numbers/symbols, and no personal info.'},
+  {q:"Which password is strongest?", choices:[
+    {t:'12345678',ok:false},{t:'MyDog2015',ok:false},{t:'Bk9$rL4!qT',ok:true}],
+   fb:'Yes — mixing letters, numbers and symbols with no personal info makes it much stronger.'},
+  {q:"Which password breaks the rules?", choices:[
+    {t:'Sunshine#42Ride',ok:false},{t:'j4Q!p9Lm2z',ok:false},{t:'MyNameIsSam123',ok:true}],
+   fb:'Correct — it includes personal information (a name), which breaks the rules.'},
+];
+
+const r3Data=[
+  {q:"What is a count-controlled loop?", choices:[
+    {t:'A loop that repeats forever',ok:false},
+    {t:'A loop that repeats an exact, chosen number of times',ok:true},
+    {t:'A block that stops the program',ok:false}],
+   fb:'Yes! It repeats exactly the number of times you choose.'},
+  {q:"Why is repeating something a set number of times called 'iteration'?", choices:[
+    {t:'"Iteration" is the computing word for repeating a step or steps',ok:true},
+    {t:'"Iteration" means deleting code',ok:false},
+    {t:'"Iteration" means running the program just once',ok:false}],
+   fb:'Correct — iteration is the proper computing word for repeating actions.'},
+];
+
+const r4Data=[
+  {q:"What shape will this program draw?",
+   blocks:[['event','🏳️ When green flag clicked'],['control','repeat 4'],['motion','move 10 steps',true],['motion','turn 90 degrees',true]],
+   choices:[{t:'Square',ok:true},{t:'Triangle',ok:false},{t:'Circle',ok:false}],
+   fb:'Yes — repeating "move + turn 90°" four times draws a square.'},
+  {q:"What shape will this program draw?",
+   blocks:[['event','🏳️ When green flag clicked'],['control','repeat 3'],['motion','move 10 steps',true],['motion','turn 120 degrees',true]],
+   choices:[{t:'Star',ok:false},{t:'Square',ok:false},{t:'Triangle',ok:true}],
+   fb:'Correct — three turns of 120° make a triangle.'},
+  {q:"The square program uses \"repeat 4\". If you change it to \"repeat 8\" (keeping turn 90°), what happens?",
+   blocks:[['event','🏳️ When green flag clicked'],['control','repeat 8'],['motion','move 10 steps',true],['motion','turn 90 degrees',true]],
+   choices:[
+     {t:'It draws the same square shape twice, retracing the same lines',ok:true},
+     {t:'It draws an eight-sided shape',ok:false},
+     {t:'The program stops working',ok:false}],
+   fb:'Right! A full turn is 360°, so after 4 repeats it\'s back to the start — the extra 4 repeats just retrace the square again.'},
+];
+
+/* ---------- GENERIC ROUND ENGINE ---------- */
+const ROUNDS={
+  r1:{data:r1Data,next:'r2'},
+  r2:{data:r2Data,next:'r3'},
+  r3:{data:r3Data,next:'r4'},
+  r4:{data:r4Data,next:'practical'},
+};
+const idx={r1:0,r2:0,r3:0,r4:0};
+
+function renderRound(key){
+  const cfg=ROUNDS[key], item=cfg.data[idx[key]];
+  $(key+'tag').textContent=`Question ${idx[key]+1} of ${cfg.data.length}`;
+  $(key+'q').textContent=item.q;
+  const scr=$(key+'script');
+  scr.innerHTML='';
+  if(item.blocks){
+    scr.classList.remove('hidden');
+    item.blocks.forEach(b=>scr.appendChild(blockEl(b[0],b[1],b[2])));
+  } else scr.classList.add('hidden');
+  $(key+'fb').textContent=''; $(key+'fb').className='feedback';
+  $('btn-next-'+key).classList.add('hidden');
+  const box=$(key+'choices'); box.innerHTML='';
+  item.choices.forEach(c=>{
+    const el=document.createElement('div'); el.className='choice'; el.textContent=c.t;
+    el.onclick=()=>{
+      if(c.ok){
+        box.querySelectorAll('.choice').forEach(x=>x.style.pointerEvents='none');
+        el.classList.add('correct'); addStar($(key+'fb'), item.fb);
+        $('btn-next-'+key).classList.remove('hidden');
+      } else {
+        el.classList.add('wrong'); missStar($(key+'fb'),'Try again — think it through.');
+        setTimeout(()=>el.classList.remove('wrong'),700);
+      }
+    };
+    box.appendChild(el);
+  });
+  $(key+'dots').innerHTML=cfg.data.map((_,i)=>`<div class="dot ${i<=idx[key]?'on':''}"></div>`).join('');
+}
+Object.keys(ROUNDS).forEach(key=>{
+  $('btn-next-'+key).onclick=()=>{
+    idx[key]++;
+    const cfg=ROUNDS[key];
+    if(idx[key]<cfg.data.length) renderRound(key);
+    else if(cfg.next==='end') finish();
+    else { show('s-'+cfg.next); if(cfg.next==='practical') renderPractical(); else renderRound(cfg.next); }
+  };
+});
+
+/* ---------- PRACTICAL PICTOBLOX PROJECT ---------- */
+const practicalSteps=[
+  "Open PictoBlox and choose a sprite to be your loop artist.",
+  "Snap a \"repeat [ ] times\" block underneath \"when green flag clicked\".",
+  "Put a \"move 10 steps\" block and a \"turn [ ] degrees\" block inside the repeat loop.",
+  "Click the green flag and test it — what shape or pattern appears?",
+  "Change only the number in the repeat block (try 3, then 8) and predict what will happen before you test again.",
+  "Save or screenshot your finished program, ready to show the class in the plenary.",
+];
+function renderPractical(){
+  const box=$('checklist'); box.innerHTML='';
+  practicalSteps.forEach((t,i)=>{
+    const el=document.createElement('div'); el.className='check-item';
+    el.innerHTML=`<span class="check-num">${i+1}</span><span class="check-text">${t}</span><span class="check-mark">✅</span>`;
+    el.onclick=()=>el.classList.toggle('done');
+    box.appendChild(el);
+  });
+}
+$('btn-practical-done').onclick=()=>finish();
+
+function finish(){
+  $('certname').textContent=agentName;
+  const total=r1Data.length+r2Data.length+r3Data.length+r4Data.length;
+  const full=Math.min(5,Math.max(1,Math.round(stars/total*5)));
+  $('finalstars').textContent='⭐'.repeat(full)+'☆'.repeat(5-full);
+  show('s-end');
+}
+$('btn-restart').onclick=()=>{
+  stars=0; idx.r1=0; idx.r2=0; idx.r3=0; idx.r4=0; $('starcount').textContent='⭐ 0';
+  show('s-title');
+};
+</script>
+</body>
+</html>
